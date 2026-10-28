@@ -1,3 +1,6 @@
+-- Схема бази даних OpenCRM (чорновий варіант)
+-- Виконали студенти групи ІМ-54: Рубан Олексій, Гладченко Віталій, Симоненко Поліна, Грищенко Ілля
+
 -- 1. Створення користувацьких перелічуваних типів (ENUM)
 CREATE TYPE user_role AS ENUM ('admin', 'manager');
 CREATE TYPE deal_status AS ENUM ('new', 'negotiation', 'contract', 'won', 'lost');

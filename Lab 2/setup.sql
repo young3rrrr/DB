@@ -1,11 +1,8 @@
--- ============================================================================
--- Лабораторна робота №2: Перетворення ER-діаграми на схему PostgreSQL (DDL)
--- Предметна область: OpenCRM
--- Автор: Рубан Олексій
--- Команда: Віталій Гладченко, Симоненко Поліна, Грищенко Ілля
--- ============================================================================
+-- Повний скрипт розгортання схеми та тестових даних OpenCRM
+-- Виконали студенти групи ІМ-54: Рубан Олексій, Гладченко Віталій, Симоненко Поліна, Грищенко Ілля
 
--- 0. Очищення існуючих об'єктів для ідемпотентності виконання
+
+-- Очищення існуючих об'єктів для ідемпотентності
 DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS deal_products CASCADE;
@@ -138,17 +135,7 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
 COMMENT ON TABLE audit_logs IS 'Незмінний журнал аудиту змін сутностей системи';
 
 
--- ============================================================================
--- ЗАВАНТАЖЕННЯ ТЕСТОВИХ ДАНИХ (DML)
--- ============================================================================
-
--- ============================================================================
--- Лабораторна робота №2: Наповнення бази даних тестовими даними (DML)
--- Предметна область: OpenCRM
--- Команда: Рубан Олексій, Віталій Гладченко, Симоненко Поліна, Грищенко Ілля
--- ============================================================================
-
--- 1. Наповнення таблиці користувачів (співробітників)
+-- 1. Співробітники компанії
 INSERT INTO users (full_name, email, password_hash, role, created_at) VALUES
     ('Рубан Олексій', 'oleksii.ruban@opencrm.ua', '$2b$12$e8YQ5FvX1xK8dJ.0qP9h6u3fE7aK5bL8cM9n0oP1qR2sT3uV4wX5y', 'admin', '2026-09-01 09:00:00+03'),
     ('Віталій Гладченко', 'vitalii.hladchenko@opencrm.ua', '$2b$12$K1rT5mY8zP3wQ6vX9sA2b.4cD7eF0gH3jK6mN9pQ2sU5wX8yA1b2c', 'manager', '2026-09-05 10:15:00+03'),
@@ -156,7 +143,7 @@ INSERT INTO users (full_name, email, password_hash, role, created_at) VALUES
     ('Грищенко Ілля', 'illia.hryshchenko@opencrm.ua', '$2b$12$M3tV7oA0bR5yS8xZ1uC4d.6eF9gH2iJ5lM8oP1rS4uW7yZ0aC3d4e', 'manager', '2026-09-12 14:00:00+03'),
     ('Андрій Ковальчук', 'andrii.kovalchuk@opencrm.ua', '$2b$12$N4uW8pB1cS6zT9yA2vD5e.7fG0hI3jK6mN9pQ2sT5vX8zA1bD4e5f', 'manager', '2026-09-15 09:45:00+03');
 
--- 2. Наповнення клієнтської бази (контрагенти)
+-- 2. Клієнти (контрагенти)
 INSERT INTO clients (company_name, contact_person, phone, email, created_at) VALUES
     ('ТОВ «Нова Пошта Технолоджі»', 'Мельник Тарас Григорович', '+380501112233', 'tech@novaposhta.ua', '2026-09-16 10:00:00+03'),
     ('ПрАТ «Київстар Дігітал»', 'Шевченко Олена Вікторівна', '+380672223344', 'digital@kyivstar.net', '2026-09-18 11:20:00+03'),
@@ -164,7 +151,7 @@ INSERT INTO clients (company_name, contact_person, phone, email, created_at) VAL
     ('ПП «Агро-Експорт Груп»', 'Бондаренко Ірина Сергіївна', '+380444445566', 'sales@agroexport.com.ua', '2026-09-25 09:10:00+03'),
     ('ТОВ «Фармак Інновації»', 'Кравченко Максим Юрійович', '+380505556677', 'partners@farmak.ua', '2026-10-01 13:00:00+03');
 
--- 3. Наповнення каталогу товарів та послуг
+-- 3. Каталог товарів та сервісів
 INSERT INTO products (name, base_price) VALUES
     ('Впровадження CRM OpenCRM (базовий пакет)', 25000.00),
     ('Інтеграція з IP-телефонією та месенджерами', 12000.00),
@@ -173,7 +160,7 @@ INSERT INTO products (name, base_price) VALUES
     ('Пакет технічної підтримки 24/7 (1 місяць)', 8000.00),
     ('Корпоративний тренінг для персоналу', 10000.00);
 
--- 4. Наповнення угод воронки продажів
+-- 4. Угоди у воронці продажів
 INSERT INTO deals (client_id, manager_id, status, total_amount, created_at, updated_at) VALUES
     (1, 1, 'won', 55000.00, '2026-09-18 12:00:00+03', '2026-10-05 16:30:00+03'),
     (2, 2, 'contract', 71000.00, '2026-09-22 14:15:00+03', '2026-10-12 11:00:00+03'),
@@ -181,26 +168,21 @@ INSERT INTO deals (client_id, manager_id, status, total_amount, created_at, upda
     (4, 4, 'new', 35000.00, '2026-10-05 15:00:00+03', '2026-10-05 15:00:00+03'),
     (5, 2, 'lost', 25000.00, '2026-10-08 10:45:00+03', '2026-10-20 18:00:00+03');
 
--- 5. Наповнення складу позицій угод (M:N)
+-- 5. Товари в угодах (позиції M:N)
 INSERT INTO deal_products (deal_id, product_id, quantity, actual_price) VALUES
-    -- Угода 1 (Разом: 25000 + 12000 + 18000 = 55000.00)
     (1, 1, 1, 25000.00),
     (1, 2, 1, 12000.00),
     (1, 3, 1, 18000.00),
-    -- Угода 2 (Разом: 24000 [зі знижкою] + 35000 + 12000 = 71000.00)
     (2, 1, 1, 24000.00),
     (2, 4, 1, 35000.00),
     (2, 2, 1, 12000.00),
-    -- Угода 3 (Разом: 25000 + 18000 = 43000.00)
     (3, 1, 1, 25000.00),
     (3, 3, 1, 18000.00),
-    -- Угода 4 (Разом: 25000 + 10000 = 35000.00)
     (4, 1, 1, 25000.00),
     (4, 6, 1, 10000.00),
-    -- Угода 5 (Разом: 25000.00)
     (5, 1, 1, 25000.00);
 
--- 6. Наповнення завдань менеджерів
+-- 6. Завдання співробітників
 INSERT INTO tasks (deal_id, assigned_to, task_type, due_date, status) VALUES
     (3, 3, 'call', CURRENT_TIMESTAMP + INTERVAL '1 day', 'pending'),
     (2, 2, 'meeting', CURRENT_TIMESTAMP + INTERVAL '2 days', 'pending'),
@@ -209,7 +191,7 @@ INSERT INTO tasks (deal_id, assigned_to, task_type, due_date, status) VALUES
     (5, 2, 'email', CURRENT_TIMESTAMP - INTERVAL '5 days', 'completed'),
     (NULL, 1, 'meeting', CURRENT_TIMESTAMP + INTERVAL '3 days', 'pending');
 
--- 7. Наповнення журналу аудиту
+-- 7. Журнал аудиту
 INSERT INTO audit_logs (entity_type, entity_id, changed_by, action, old_data, new_data, created_at) VALUES
     ('deal', 1, 1, 'CREATE', NULL, '{"client_id": 1, "manager_id": 1, "status": "new", "total_amount": 55000.00}'::jsonb, '2026-09-18 12:00:00+03'),
     ('deal', 1, 1, 'UPDATE_STATUS', '{"status": "contract"}'::jsonb, '{"status": "won"}'::jsonb, '2026-10-05 16:30:00+03'),
